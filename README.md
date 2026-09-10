@@ -13,9 +13,12 @@ esforços é a entrega.
 
 ## A peça
 
-Suporte em L: base 100 × 50 × 10 mm vazada por um rasgo oblongo R7,5 com os centros dos
-arcos a 25 mm, parede vertical de 40 × 10 mm com topo arredondado R20 tangente às
-laterais e furo passante Ø25 concêntrico, e nervura triangular de reforço.
+Suporte em L do desenho [`desenho-tecnico-suporte.pdf`](desenho-tecnico-suporte.pdf)
+(*Exercise-71*): base 100 × 50 × 10 mm vazada por um rasgo oblongo R7,5 com os centros dos
+arcos afastados 25 mm; parede de 15 mm de espessura, 50 mm de comprimento e 40 mm de
+altura, com canto superior arredondado em R20 e furo passante Ø25 concêntrico com esse
+arco; e nervura triangular de reforço de 35 × 40 mm com 10 mm de espessura, perpendicular
+à parede. Volume 72.832,1 mm³.
 
 | | |
 |---|---|
@@ -36,7 +39,8 @@ OPENCODE --HTTP---> fusion 27182                                        desabili
 |---|---|
 | `opencode.json` | os servidores MCP; o `fusion` fica com `"enabled": false` |
 | `AGENTS.md` | unidades, convenções e regras do projeto |
-| `leitura-do-desenho.md` | a tabela de leitura, com as premissas marcadas |
+| `desenho-tecnico-suporte.pdf` | o desenho técnico, insumo da Tarefa A |
+| `leitura-do-desenho.md` | a tabela de leitura, cota por cota, com a vista de origem |
 | `comparacao.md` | **a Entrega 2** — medição de contexto, as duas alterações e a conclusão |
 | `substituicao-fusion-por-freecad.md` | por que o FreeCAD no lugar do Fusion |
 | `medir-contexto.py` | mede o custo de contexto de um servidor MCP |

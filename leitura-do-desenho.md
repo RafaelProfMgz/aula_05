@@ -1,49 +1,76 @@
 # Leitura do desenho — suporte em L
 
-Fonte pretendida: `desenho-tecnico-suporte.pdf` (arquivos/aula05-modelagem-3d)
-
-> ⚠️ **O desenho não foi disponibilizado até o momento da modelagem.** As cotas abaixo
-> marcadas como **[apostila]** vêm do texto das seções 5.1 e 5.2, que as cita
-> literalmente. As marcadas como **[premissa]** foram fixadas por mim, por serem
-> necessárias para fechar a geometria, e estão registradas aqui para serem substituídas
-> pelos valores do desenho quando ele chegar. Trocar um valor nesta tabela e repetir a
-> etapa correspondente é suficiente — o histórico recalcula o restante.
+Fonte: [`desenho-tecnico-suporte.pdf`](desenho-tecnico-suporte.pdf) — *Exercise-71*, três vistas
+ortográficas mais isométrico, cotas em milímetro.
 
 ## Sistema de coordenadas adotado
 
-- Origem no canto da base; **X** = comprimento (100), **Y** = profundidade (50), **Z** = altura
-- **Aresta frontal** = a aresta em `Y = 0`
-- A parede vertical fica na frente (`Y = 0` a `Y = 10`); o rasgo e a nervura ficam atrás dela
+- Origem no canto inferior da base
+- **X** = largura (0 a 50) · **Y** = comprimento (0 a 100) · **Z** = altura (0 a 50)
+- A parede e a nervura ficam na extremidade **Y = 100**; o rasgo fica na outra metade
 
 ## Tabela de leitura
 
-| Elemento | Cota | Vista | Origem |
-| --- | --- | --- | --- |
-| Base — comprimento | 100 mm | superior | [apostila] |
-| Base — largura | 50 mm | superior | [apostila] |
-| Base — espessura | 10 mm | frontal | [apostila] |
-| Rasgo oblongo — raio | R7,5 mm | superior | [apostila] |
-| Rasgo oblongo — distância entre os centros dos arcos | 25 mm | superior | [apostila] |
-| Rasgo oblongo — posição | centrado na largura (X = 50), centro a 40 mm da aresta frontal | superior | [apostila] |
-| Rasgo oblongo — profundidade | passante | superior | [apostila] |
-| Parede vertical — largura | 40 mm, centrada em X (30 a 70) | frontal | **[premissa]** — imposta pela tangência do R20 (2 × 20 = 40) |
-| Parede vertical — espessura | 10 mm | lateral | **[premissa]** |
-| Parede vertical — altura total | 70 mm a partir da base | frontal | **[premissa]** |
-| Topo da parede — raio | R20, tangente às duas laterais | frontal | [apostila] |
-| Furo da parede — diâmetro | Ø25 mm | frontal | [apostila] |
-| Furo da parede — centro | concêntrico com o arco do topo: X = 50, Z = 50 | frontal | [apostila] (concentricidade citada na seção 5.2, etapa 5) |
-| Nervura — espessura | 8 mm, centrada em X | lateral | **[premissa]** |
-| Nervura — comprimento na base | 20 mm (Y = 10 a Y = 30) | lateral | **[premissa]** — limitado para não invadir o rasgo, que começa em Y = 32,5 |
-| Nervura — altura | 25 mm acima da base (Z = 10 a Z = 35) | lateral | **[premissa]** |
+| Elemento | Cota | Vista |
+| --- | --- | --- |
+| Base — comprimento | 100 mm | superior e a das 100 |
+| Base — largura | 50 mm | superior |
+| Base — espessura | 10 mm | as duas inferiores |
+| Rasgo oblongo — raio | R7,5 mm | superior |
+| Rasgo oblongo — distância entre os centros dos arcos | 25 mm | superior (cadeia 15 + 25) |
+| Rasgo oblongo — 1º centro, a partir da aresta frontal (Y=0) | 15 mm | superior |
+| Rasgo oblongo — 2º centro | Y = 40 mm | superior |
+| Rasgo oblongo — posição na largura | X = 25 mm, centrado | superior (cota 25 de 50) |
+| Rasgo oblongo — profundidade | passante | superior |
+| Parede — espessura | 15 mm (X de 0 a 15) | superior e lateral |
+| Parede — comprimento | 50 mm (Y de 50 a 100) | a das 100 |
+| Parede — altura | 40 mm acima da base; **50 mm** no total | a das 100 e lateral |
+| Canto arredondado — raio | R20, tangente à face Y=50 e ao topo Z=50 | a das 100 |
+| Furo — diâmetro | Ø25 mm, eixo ao longo de X | a das 100 |
+| Furo — centro, a partir da extremidade Y=100 | 30 mm (cadeia 20 + 10) → Y = 70 | a das 100 |
+| Furo — centro, altura sobre o topo da base | 20 mm → Z = 30 | a das 100 |
+| Nervura — espessura | 10 mm (Y de 90 a 100) | superior |
+| Nervura — cateto na base | 35 mm (X de 15 a 50) | superior (15 + 35) e lateral |
+| Nervura — cateto vertical | 40 mm (Z de 10 a 50) | lateral |
 
 ## Observações da leitura
 
-- **Tangência do topo:** o R20 só é tangente às laterais se a parede tiver exatamente
-  40 mm de largura. Essa é a razão da premissa da largura da parede, e não uma escolha
-  arbitrária — a seção 5.2, etapa 4, exige "raio, e tangência com as laterais".
-- **Concentricidade:** o centro do furo coincide com o centro do arco do topo, conforme a
-  etapa 5 da seção 5.2. Com o arco em Z = 50, o furo fica em Z = 50.
-- **Conflito evitado:** o rasgo oblongo ocupa Y de 32,5 a 47,5. A nervura foi limitada a
-  Y = 30 para não nascer sobre o vazado.
-- Escala declarada no desenho: _não disponível_
-- Tolerância geral: _não disponível_
+- **Concentricidade.** O centro do furo e o centro do arco R20 coincidem em (Y = 70,
+  Z = 30). As duas cadeias de cotas fecham no mesmo ponto: 20 + 10 = 30 a partir de
+  Y = 100, e 20 acima do topo da base. A parede remanescente entre o furo Ø25 e o arco é
+  de 20 − 12,5 = **7,5 mm**.
+- **Tangência.** O R20 é um **filete de canto**, não uma meia-lua: encosta na face
+  vertical Y = 50 e no topo Z = 50. Com o centro em (70, 30), as duas tangências saem
+  exatas.
+- **Perpendicularidade.** A parede é uma placa fina em X (15 mm); a nervura é uma placa
+  fina em Y (10 mm). As duas são **perpendiculares entre si**, e não paralelas — é o que a
+  vista superior mostra ao trazer a nervura como uma faixa de 35 × 10 ao lado do bloco de
+  15 × 50 da parede.
+- **A vista superior tem duas cadeias horizontais:** 15 + 35 = 50, que separa a espessura
+  da parede (15) do cateto da nervura (35).
+- Escala declarada no desenho: não indicada.
+- Tolerância geral: não indicada.
+
+---
+
+## O que a leitura corrigiu
+
+O desenho só chegou depois da primeira modelagem, que foi feita com premissas tiradas do
+texto da apostila. **Cinco delas estavam erradas**, e o registro fica aqui porque a
+diferença entre o que se supõe e o que o desenho diz é exatamente o ponto da seção 5.1.
+
+| Elemento | Premissa usada antes | O desenho diz |
+|---|---|---|
+| Parede | placa de 10 mm atravessando a largura, 40 mm de largura | placa de **15 mm** de espessura em X, 50 mm de comprimento em Y |
+| Topo da parede | meia-lua semicircular R20 sobre a largura | **filete de canto** R20 no canto superior do perfil Y-Z |
+| Furo | centro no meio da meia-lua | centro em (Y=70, Z=30), 30 da extremidade e 20 acima da base |
+| Rasgo | eixo ao longo da largura, centro a 40 mm da aresta frontal | eixo ao longo do **comprimento**, centros em Y=15 e Y=40 |
+| Nervura | 8 mm de espessura, catetos 20 × 25 | **10 mm** de espessura, catetos **35 × 40** |
+
+A frase da apostila "com o centro do conjunto a 40 mm da aresta frontal" (seção 5.2,
+etapa 2) descreve o **segundo centro de arco**, em Y = 40, e não o centro do conjunto, que
+fica em Y = 27,5. O texto da apostila é um exemplo de pedido, não a cota do desenho — e a
+tabela de leitura existe justamente para que a cota venha do desenho.
+
+O modelo foi refeito do zero a partir desta tabela. O volume de cada uma das seis etapas
+confere com o cálculo analítico com erro menor que 0,05 mm³.

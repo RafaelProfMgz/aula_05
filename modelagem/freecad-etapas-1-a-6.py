@@ -5,7 +5,7 @@ from FreeCAD import Vector
 
 CAP = "/home/angel/tep/aula05/capturas/"
 
-def novo_sk(doc, body, nome, placement):
+def sk_novo(doc, body, nome, placement):
     sk = doc.addObject("Sketcher::SketchObject", nome)
     body.addObject(sk)
     sk.Placement = placement
@@ -18,20 +18,17 @@ def retangulo(sk, u1, v1, u2, v2):
         sk.addGeometry(Part.LineSegment(Vector(a[0], a[1], 0), Vector(b[0], b[1], 0)), False)
     for i in range(4):
         sk.addConstraint(Sketcher.Constraint("Coincident", i, 2, (i + 1) % 4, 1))
-    sk.addConstraint(Sketcher.Constraint("Horizontal", 0))
-    sk.addConstraint(Sketcher.Constraint("Horizontal", 2))
-    sk.addConstraint(Sketcher.Constraint("Vertical", 1))
-    sk.addConstraint(Sketcher.Constraint("Vertical", 3))
+    for i, t in ((0, "Horizontal"), (2, "Horizontal"), (1, "Vertical"), (3, "Vertical")):
+        sk.addConstraint(Sketcher.Constraint(t, i))
 
 def cota(sk, tipo, *args, nome=None):
     sk.addConstraint(Sketcher.Constraint(tipo, *args))
     if nome:
         sk.renameConstraint(sk.ConstraintCount - 1, nome)
 
-def estado(sk):
+def est(sk):
     sk.solve()
-    return ("restringido=%s redundantes=%s conflitantes=%s"
-            % (sk.FullyConstrained, list(sk.RedundantConstraints), list(sk.ConflictingConstraints)))
+    return "restringido=%s redundantes=%s" % (sk.FullyConstrained, list(sk.RedundantConstraints))
 
 def captura(nome):
     v = Gui.ActiveDocument.ActiveView
@@ -39,137 +36,132 @@ def captura(nome):
     v.saveImage(CAP + nome, 1280, 720, "White")
     return nome
 
-def medir(body, titulo, esperado=None):
+def medir(body, titulo, esperado):
     bb = body.Shape.BoundBox
     vol = body.Shape.Volume
-    print("%s" % titulo)
+    print(titulo)
     print("   caixa envolvente mm : %.2f x %.2f x %.2f" % (bb.XLength, bb.YLength, bb.ZLength))
-    if esperado is not None:
-        print("   volume mm3          : %.1f  (esperado %.1f, erro %.4f)" % (vol, esperado, vol - esperado))
-    else:
-        print("   volume mm3          : %.1f" % vol)
-    return bb, vol
+    print("   volume mm3          : %.1f  (esperado %.1f, erro %+.4f)" % (vol, esperado, vol - esperado))
 
-# ---------------------------------------------------------------- documento
 for d in list(App.listDocuments()):
     App.closeDocument(d)
 doc = App.newDocument("suporte")
 Gui.ActiveDocument = Gui.getDocument("suporte")
 body = doc.addObject("PartDesign::Body", "corpo")
 
-XY = App.Placement(Vector(0, 0, 0), App.Rotation(0, 0, 0, 1))
-XZ = App.Placement(Vector(0, 0, 0), App.Rotation(Vector(1, 0, 0), 90))
-YZ = App.Placement(Vector(50, 0, 0), App.Rotation(Vector(1, 1, 1), 120))
+XY  = App.Placement(Vector(0, 0, 0),  App.Rotation(0, 0, 0, 1))
+YZ  = App.Placement(Vector(0, 0, 0),  App.Rotation(Vector(1, 1, 1), 120))   # u=Y, v=Z, normal=+X
+XZ90 = App.Placement(Vector(0, 90, 0), App.Rotation(Vector(1, 0, 0), 90))   # u=X, v=Z
 
-# ---------------------------------------------------------------- ETAPA 1
-sk = novo_sk(doc, body, "esboco_base", XY)
-retangulo(sk, 0, 0, 100, 50)
-cota(sk, "DistanceX", 0, 1, 0, 2, 100.0, nome="comprimento_base")
-cota(sk, "DistanceY", 1, 1, 1, 2, 50.0, nome="largura_base")
+# ================================================= ETAPA 1 - base 100 x 50 x 10
+sk = sk_novo(doc, body, "esboco_base", XY)
+retangulo(sk, 0, 0, 50, 100)
+cota(sk, "DistanceX", 0, 1, 0, 2, 50.0,  nome="largura_base")
+cota(sk, "DistanceY", 1, 1, 1, 2, 100.0, nome="comprimento_base")
 cota(sk, "DistanceX", -1, 1, 0, 1, 0.0)
 cota(sk, "DistanceY", -1, 1, 0, 1, 0.0)
-print("esboco_base:", estado(sk))
+print("esboco_base:", est(sk))
 pad = doc.addObject("PartDesign::Pad", "extrusao_base")
-body.addObject(pad); pad.Profile = sk; pad.Length = 10.0
+body.addObject(pad); pad.Profile = sk
+cota_esp = 10.0
+pad.Length = cota_esp
 sk.Visibility = False
 doc.recompute()
 medir(body, "ETAPA 1 - base 100 x 50 x 10", 50000.0)
-print("   captura             :", captura("etapa-1-base.png"))
+print("   captura:", captura("etapa-1-base.png"))
 
-# ---------------------------------------------------------------- ETAPA 2
-R, CY, X1, X2 = 7.5, 40.0, 37.5, 62.5
-sk = novo_sk(doc, body, "esboco_rasgo", App.Placement(Vector(0, 0, 10), App.Rotation(0, 0, 0, 1)))
+# ================================================= ETAPA 2 - rasgo oblongo
+R, CX, Y1, Y2 = 7.5, 25.0, 15.0, 40.0
+sk = sk_novo(doc, body, "esboco_rasgo", App.Placement(Vector(0, 0, 10), App.Rotation(0, 0, 0, 1)))
 n = Vector(0, 0, 1)
-sk.addGeometry(Part.ArcOfCircle(Part.Circle(Vector(X1, CY, 0), n, R), math.pi / 2, 3 * math.pi / 2), False)
-sk.addGeometry(Part.ArcOfCircle(Part.Circle(Vector(X2, CY, 0), n, R), -math.pi / 2, math.pi / 2), False)
-sk.addGeometry(Part.LineSegment(Vector(X1, CY - R, 0), Vector(X2, CY - R, 0)), False)
-sk.addGeometry(Part.LineSegment(Vector(X2, CY + R, 0), Vector(X1, CY + R, 0)), False)
+# arco inferior (180->360) e arco superior (0->180), unidos por dois lados verticais
+sk.addGeometry(Part.ArcOfCircle(Part.Circle(Vector(CX, Y1, 0), n, R), math.pi, 2 * math.pi), False)  # 0
+sk.addGeometry(Part.ArcOfCircle(Part.Circle(Vector(CX, Y2, 0), n, R), 0.0, math.pi), False)          # 1
+sk.addGeometry(Part.LineSegment(Vector(CX + R, Y1, 0), Vector(CX + R, Y2, 0)), False)                # 2
+sk.addGeometry(Part.LineSegment(Vector(CX - R, Y2, 0), Vector(CX - R, Y1, 0)), False)                # 3
 for a, b in ((0, 2), (2, 1), (1, 3), (3, 0)):
     sk.addConstraint(Sketcher.Constraint("Coincident", a, 2, b, 1))
-sk.addConstraint(Sketcher.Constraint("Horizontal", 2))
+sk.addConstraint(Sketcher.Constraint("Vertical", 2))
 sk.addConstraint(Sketcher.Constraint("Equal", 0, 1))
 cota(sk, "Radius", 0, R, nome="raio_rasgo")
-cota(sk, "DistanceX", 0, 3, 1, 3, 25.0, nome="distancia_centros")
-cota(sk, "DistanceY", -1, 1, 0, 3, CY, nome="rasgo_ate_aresta_frontal")
-cota(sk, "DistanceX", -1, 1, 0, 3, X1, nome="rasgo_em_x")
-print("esboco_rasgo:", estado(sk))
+cota(sk, "DistanceY", 0, 3, 1, 3, Y2 - Y1, nome="distancia_centros")
+cota(sk, "DistanceX", -1, 1, 0, 3, CX, nome="rasgo_centrado_na_largura")
+cota(sk, "DistanceY", -1, 1, 0, 3, Y1, nome="rasgo_ate_aresta_frontal")
+print("esboco_rasgo:", est(sk))
 pk = doc.addObject("PartDesign::Pocket", "rasgo_oblongo")
 body.addObject(pk); pk.Profile = sk; pk.Type = 1
 sk.Visibility = False
 doc.recompute()
-esp2 = 50000.0 - (25 * 15 + math.pi * R * R) * 10
-medir(body, "ETAPA 2 - rasgo oblongo passante", esp2)
-print("   centro -> aresta frontal (Y=0)  : %.2f mm" % CY)
-print("   centro -> aresta traseira (Y=50): %.2f mm" % (50 - CY))
-print("   centro em X                     : %.2f mm" % ((X1 + X2) / 2))
-print("   captura             :", captura("etapa-2-rasgo-oblongo.png"))
+e2 = 50000.0 - ((Y2 - Y1) * 2 * R + math.pi * R * R) * 10
+medir(body, "ETAPA 2 - rasgo oblongo passante", e2)
+print("   centros dos arcos   : Y=%.1f e Y=%.1f (afastados %.1f mm)" % (Y1, Y2, Y2 - Y1))
+print("   centrado na largura : X=%.1f de 50.0" % CX)
+print("   captura:", captura("etapa-2-rasgo-oblongo.png"))
 
-# ---------------------------------------------------------------- ETAPA 3
-sk = novo_sk(doc, body, "esboco_parede", XZ)
-retangulo(sk, 30, 0, 70, 50)
-cota(sk, "DistanceX", 0, 1, 0, 2, 40.0, nome="largura_parede")
-cota(sk, "DistanceY", 1, 1, 1, 2, 50.0, nome="altura_parede_reta")
-cota(sk, "DistanceX", -1, 1, 0, 1, 30.0, nome="parede_em_x")
-cota(sk, "DistanceY", -1, 1, 0, 1, 0.0)
-print("esboco_parede:", estado(sk))
+# ================================================= ETAPA 3 - parede vertical
+ESP_PAREDE, YP1, YP2, ZP1, ZP2 = 15.0, 50.0, 100.0, 10.0, 50.0
+sk = sk_novo(doc, body, "esboco_parede", YZ)
+retangulo(sk, YP1, ZP1, YP2, ZP2)
+cota(sk, "DistanceX", 0, 1, 0, 2, YP2 - YP1, nome="comprimento_parede")
+cota(sk, "DistanceY", 1, 1, 1, 2, ZP2 - ZP1, nome="altura_parede")
+cota(sk, "DistanceX", -1, 1, 0, 1, YP1, nome="parede_em_y")
+cota(sk, "DistanceY", -1, 1, 0, 1, ZP1)
+print("esboco_parede:", est(sk))
 pad = doc.addObject("PartDesign::Pad", "extrusao_parede")
-body.addObject(pad); pad.Profile = sk; pad.Length = 10.0; pad.Reversed = True
+body.addObject(pad); pad.Profile = sk; pad.Length = ESP_PAREDE
 sk.Visibility = False
 doc.recompute()
-esp3 = esp2 + (40 * 50 - 40 * 10) * 10
-medir(body, "ETAPA 3 - parede vertical", esp3)
-print("   espessura da parede : 10.00 mm")
-print("   altura reta         : 50.00 mm (ate o centro do arco do topo)")
-print("   captura             :", captura("etapa-3-parede-vertical.png"))
+e3 = e2 + (YP2 - YP1) * (ZP2 - ZP1) * ESP_PAREDE
+medir(body, "ETAPA 3 - parede vertical", e3)
+print("   espessura: %.1f mm (X de 0 a %.1f) | altura ate Z=%.1f" % (ESP_PAREDE, ESP_PAREDE, ZP2))
+print("   captura:", captura("etapa-3-parede-vertical.png"))
 
-# ---------------------------------------------------------------- ETAPA 4
-CX, CZ, RT = 50.0, 50.0, 20.0
-sk = novo_sk(doc, body, "esboco_topo", XZ)
-sk.addGeometry(Part.ArcOfCircle(Part.Circle(Vector(CX, CZ, 0), n, RT), 0.0, math.pi), False)
-sk.addGeometry(Part.LineSegment(Vector(CX - RT, CZ, 0), Vector(CX + RT, CZ, 0)), False)
-sk.addConstraint(Sketcher.Constraint("Coincident", 0, 2, 1, 1))
-sk.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 0, 1))
-cota(sk, "Radius", 0, RT, nome="raio_topo")
-cota(sk, "DistanceX", -1, 1, 0, 3, CX, nome="topo_em_x")
-cota(sk, "DistanceY", -1, 1, 0, 3, CZ, nome="topo_em_z")
-print("esboco_topo:", estado(sk))
-pad = doc.addObject("PartDesign::Pad", "topo_arredondado")
-body.addObject(pad); pad.Profile = sk; pad.Length = 10.0; pad.Reversed = True
-sk.Visibility = False
+# ================================================= ETAPA 4 - canto arredondado R20
+RT = 20.0
+alvo = None
+for i, e in enumerate(pad.Shape.Edges):
+    vs = e.Vertexes
+    if len(vs) == 2:
+        ys = [round(p.Y, 3) for p in vs]; zs = [round(p.Z, 3) for p in vs]; xs = [round(p.X, 3) for p in vs]
+        if ys == [YP1, YP1] and zs == [ZP2, ZP2] and xs[0] != xs[1]:
+            alvo = "Edge%d" % (i + 1)
+print("   aresta do canto:", alvo)
+fil = doc.addObject("PartDesign::Fillet", "canto_arredondado")
+body.addObject(fil)
+fil.Base = (pad, [alvo])
+fil.Radius = RT
 doc.recompute()
-esp4 = esp3 + math.pi * RT * RT / 2 * 10
-medir(body, "ETAPA 4 - topo arredondado R20", esp4)
-for z in (50.0, 55.0, 60.0, 65.0, 69.0):
-    sec = body.Shape.slice(App.Vector(0, 0, 1), z)
-    if sec:
-        xmin = min(w.BoundBox.XMin for w in sec); xmax = max(w.BoundBox.XMax for w in sec)
-        teo = 40.0 if z <= 50 else 2 * math.sqrt(max(RT * RT - (z - CZ) ** 2, 0))
-        print("   Z=%5.1f largura %6.2f mm (teorica %6.2f, erro %+.4f)" % (z, xmax - xmin, teo, xmax - xmin - teo))
-print("   tangencia: largura em Z=50 igual a da parede (40.00) -> arco tangente as laterais")
-print("   captura             :", captura("etapa-4-topo-arredondado.png"))
+print("   estado do filete:", fil.State)
+e4 = e3 - (RT * RT - math.pi * RT * RT / 4) * ESP_PAREDE
+medir(body, "ETAPA 4 - canto arredondado R20", e4)
+CY, CZ = YP1 + RT, ZP2 - RT
+print("   centro do arco      : Y=%.1f  Z=%.1f" % (CY, CZ))
+print("   tangencia: arco R20 encosta na face Y=%.1f e no topo Z=%.1f" % (YP1, ZP2))
+print("   captura:", captura("etapa-4-canto-arredondado.png"))
 
-# ---------------------------------------------------------------- ETAPA 5
+# ================================================= ETAPA 5 - furo Ø25
 D = 25.0
-sk = novo_sk(doc, body, "esboco_furo", XZ)
-sk.addGeometry(Part.Circle(Vector(CX, CZ, 0), n, D / 2), False)
+sk = sk_novo(doc, body, "esboco_furo", YZ)
+sk.addGeometry(Part.Circle(Vector(CY, CZ, 0), n, D / 2), False)
 cota(sk, "Diameter", 0, D, nome="diametro_furo")
-cota(sk, "DistanceX", -1, 1, 0, 3, CX, nome="furo_em_x")
+cota(sk, "DistanceX", -1, 1, 0, 3, CY, nome="furo_em_y")
 cota(sk, "DistanceY", -1, 1, 0, 3, CZ, nome="furo_em_z")
-print("esboco_furo:", estado(sk))
+print("esboco_furo:", est(sk))
 pk = doc.addObject("PartDesign::Pocket", "furo_passante")
 body.addObject(pk); pk.Profile = sk; pk.Type = 1
 sk.Visibility = False
 doc.recompute()
-esp5 = esp4 - math.pi * (D / 2) ** 2 * 10
-medir(body, "ETAPA 5 - furo passante Ø25", esp5)
-print("   centro do furo      : X=%.2f  Z=%.2f" % (CX, CZ))
-print("   centro do arco topo : X=%.2f  Z=%.2f  -> concentrico" % (CX, CZ))
-print("   captura             :", captura("etapa-5-furo-passante.png"))
+e5 = e4 - math.pi * (D / 2) ** 2 * ESP_PAREDE
+medir(body, "ETAPA 5 - furo passante Ø25", e5)
+print("   centro do furo      : Y=%.1f  Z=%.1f" % (CY, CZ))
+print("   centro do arco R20  : Y=%.1f  Z=%.1f  -> CONCENTRICO" % (CY, CZ))
+print("   altura do centro sobre o topo da base: %.1f mm" % (CZ - 10.0))
+print("   captura:", captura("etapa-5-furo-passante.png"))
 
-# ---------------------------------------------------------------- ETAPA 6
-E, Y1, Y2, Z1, Z2 = 8.0, 10.0, 30.0, 10.0, 35.0
-sk = novo_sk(doc, body, "esboco_nervura", YZ)
-tri = [(Y1, Z1), (Y2, Z1), (Y1, Z2)]
+# ================================================= ETAPA 6 - nervura triangular
+EN, XN1, XN2, ZN1, ZN2 = 10.0, 15.0, 50.0, 10.0, 50.0
+sk = sk_novo(doc, body, "esboco_nervura", XZ90)
+tri = [(XN1, ZN1), (XN2, ZN1), (XN1, ZN2)]
 for i in range(3):
     a, b = tri[i], tri[(i + 1) % 3]
     sk.addGeometry(Part.LineSegment(Vector(a[0], a[1], 0), Vector(b[0], b[1], 0)), False)
@@ -177,26 +169,26 @@ for i in range(3):
     sk.addConstraint(Sketcher.Constraint("Coincident", i, 2, (i + 1) % 3, 1))
 sk.addConstraint(Sketcher.Constraint("Horizontal", 0))
 sk.addConstraint(Sketcher.Constraint("Vertical", 2))
-cota(sk, "DistanceX", 0, 1, 0, 2, Y2 - Y1, nome="comprimento_nervura")
-cota(sk, "DistanceY", 2, 1, 2, 2, Z2 - Z1, nome="altura_nervura")
-cota(sk, "DistanceX", -1, 1, 0, 1, Y1, nome="nervura_em_y")
-cota(sk, "DistanceY", -1, 1, 0, 1, Z1, nome="nervura_em_z")
-print("esboco_nervura:", estado(sk))
+cota(sk, "Distance", 0, XN2 - XN1, nome="base_nervura")
+cota(sk, "Distance", 2, ZN2 - ZN1, nome="altura_nervura")
+cota(sk, "DistanceX", -1, 1, 0, 1, XN1, nome="nervura_em_x")
+cota(sk, "DistanceY", -1, 1, 0, 1, ZN1)
+print("esboco_nervura:", est(sk))
 pad = doc.addObject("PartDesign::Pad", "nervura")
-body.addObject(pad); pad.Profile = sk; pad.Length = E; pad.Midplane = True
+body.addObject(pad); pad.Profile = sk; pad.Length = EN; pad.Reversed = True
 sk.Visibility = False
 doc.recompute()
-esp6 = esp5 + 0.5 * (Y2 - Y1) * (Z2 - Z1) * E
-medir(body, "ETAPA 6 - nervura de reforco", esp6)
-print("   espessura da nervura: %.2f mm (centrada em X=50)" % E)
-print("   altura              : %.2f mm acima da base" % (Z2 - Z1))
-print("   comprimento na base : %.2f mm (Y de %.1f a %.1f)" % (Y2 - Y1, Y1, Y2))
-print("   captura             :", captura("etapa-6-nervura.png"))
+e6 = e5 + 0.5 * (XN2 - XN1) * (ZN2 - ZN1) * EN
+medir(body, "ETAPA 6 - nervura triangular", e6)
+print("   espessura: %.1f mm (Y de 90 a 100) | cateto na base %.1f | cateto vertical %.1f"
+      % (EN, XN2 - XN1, ZN2 - ZN1))
+print("   encosta na parede em X=%.1f (face externa da parede)" % XN1)
+print("   captura:", captura("etapa-6-nervura.png"))
 
-# ---------------------------------------------------------------- fechamento
 print()
 print("HISTORICO:", [o.Name for o in body.Group])
-print("solidos no corpo:", len(body.Shape.Solids), "-> corpo unico:", len(body.Shape.Solids) == 1)
-print("shape valido:", body.Shape.isValid())
+print("solidos: %d | shape valido: %s" % (len(body.Shape.Solids), body.Shape.isValid()))
+bb = body.Shape.BoundBox
+print("caixa envolvente final: %.2f x %.2f x %.2f mm" % (bb.XLength, bb.YLength, bb.ZLength))
 doc.saveAs("/home/angel/tep/aula05/suporte.FCStd")
-print("documento salvo: suporte.FCStd")
+print("salvo: suporte.FCStd")
