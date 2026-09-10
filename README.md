@@ -44,6 +44,7 @@ OPENCODE --HTTP---> fusion 27182                                        desabili
 | `suporte.blend` | a cena do Blender: malha, dois materiais, três luzes e câmera |
 | `saidas/` | `suporte.step` e `suporte.stl` (Ø25) e as versões `-furo30` |
 | `capturas/` | o viewport de cada uma das seis etapas, mais os passos 7 e 8 |
+| `modelagem/` | os scripts que o agente executou, na ordem — reprodutíveis |
 | `renders/` | as duas imagens em 1920×1080 |
 
 ## Reproduzir
