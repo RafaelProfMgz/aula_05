@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "blender": {
+      "type": "local",
+      "command": ["/home/angel/tep/aula05/.venv/bin/blender-mcp"],
+      "enabled": true
+    },
+    "fusion": {
+      "type": "remote",
+      "url": "http://127.0.0.1:27182/mcp",
+      "enabled": false
+    }
+  }
+}
