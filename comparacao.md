@@ -72,3 +72,18 @@ fabricada, e por quê._
   A Tarefa A depende de uma máquina com Windows ou macOS.
 - **O desenho técnico ainda não foi obtido.** `desenho-tecnico-suporte.pdf` precisa ser
   baixado do ambiente virtual para completar o `leitura-do-desenho.md`.
+
+---
+
+## Anexo — como a medição foi feita
+
+`medir-contexto.py`, na raiz do repositório, abre o servidor por stdio, chama
+`list_tools` e soma os caracteres de nome, descrição e esquema de parâmetros de cada
+ferramenta — que é exatamente o texto apresentado ao modelo em toda chamada:
+
+```
+.venv/bin/python medir-contexto.py
+```
+
+Para medir o Fusion, o mesmo script serve apontando para o executável do servidor;
+como o Fusion é `remote`, a medição de lá exige um cliente HTTP em vez de stdio.
