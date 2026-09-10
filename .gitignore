@@ -1,4 +1,5 @@
 .venv/
 .env
 *.FCStd1
+*.FCBak
 *.blend1
